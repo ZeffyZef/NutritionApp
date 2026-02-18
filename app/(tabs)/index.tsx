@@ -1,98 +1,269 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+const PROFILE = {
+  gymDay: {
+    calories: 2880,
+    proteines: 182,
+    glucides: 344,
+    lipides: 86,
+  },
+  restDay: {
+    calories: 2540,
+    proteines: 182,
+    glucides: 258,
+    lipides: 86,
+  },
+};
+
+function MacroBar({ label, current, target, color }: {
+  label: string;
+  current: number;
+  target: number;
+  color: string;
+}) {
+  const percent = Math.min((current / target) * 100, 100);
+  return (
+    <View style={styles.macroRow}>
+      <View style={styles.macroHeader}>
+        <Text style={styles.macroLabel}>{label}</Text>
+        <Text style={styles.macroValues}>{current}g / {target}g</Text>
+      </View>
+      <View style={styles.barBackground}>
+        <View style={[styles.barFill, { width: `${percent}%`, backgroundColor: color }]} />
+      </View>
+    </View>
+  );
+}
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  // ── STATE : la variable que React surveille ──────────────
+  const [isGymDay, setIsGymDay] = useState(true);
+
+  const targets = isGymDay ? PROFILE.gymDay : PROFILE.restDay;
+
+  const consumed = {
+    calories: 1240,
+    proteines: 87,
+    glucides: 130,
+    lipides: 38,
+  };
+
+  const caloriesPercent = Math.min((consumed.calories / targets.calories) * 100, 100);
+
+  return (
+    <ScrollView style={styles.container}>
+
+      {/* En-tête */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>🥗 NutritionApp</Text>
+        <View style={[styles.dayBadge, { backgroundColor: isGymDay ? '#27ae60' : '#2980b9' }]}>
+          <Text style={styles.dayBadgeText}>{isGymDay ? '🏋️ Jour Gym' : '😴 Jour Repos'}</Text>
+        </View>
+      </View>
+
+      {/* Boutons switch */}
+      <View style={styles.switchContainer}>
+        <TouchableOpacity
+          style={[styles.switchBtn, isGymDay && styles.switchBtnActive]}
+          onPress={() => setIsGymDay(true)}
+        >
+          <Text style={[styles.switchBtnText, isGymDay && styles.switchBtnTextActive]}>
+            🏋️ Jour Gym
+          </Text>
+          <Text style={[styles.switchBtnSub, isGymDay && styles.switchBtnTextActive]}>
+            2 880 kcal
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.switchBtn, !isGymDay && styles.switchBtnActive]}
+          onPress={() => setIsGymDay(false)}
+        >
+          <Text style={[styles.switchBtnText, !isGymDay && styles.switchBtnTextActive]}>
+            😴 Jour Repos
+          </Text>
+          <Text style={[styles.switchBtnSub, !isGymDay && styles.switchBtnTextActive]}>
+            2 540 kcal
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Carte calories */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Calories du jour</Text>
+        <Text style={styles.caloriesBig}>{consumed.calories}</Text>
+        <Text style={styles.caloriesTarget}>sur {targets.calories} kcal</Text>
+        <View style={styles.barBackground}>
+          <View style={[styles.barFill, {
+            width: `${caloriesPercent}%`,
+            backgroundColor: caloriesPercent > 90 ? '#e74c3c' : '#27ae60'
+          }]} />
+        </View>
+        <Text style={styles.caloriesRemaining}>
+          ✅ Restant : {targets.calories - consumed.calories} kcal
+        </Text>
+      </View>
+
+      {/* Carte macros */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Macronutriments</Text>
+        <MacroBar label="Protéines" current={consumed.proteines} target={targets.proteines} color="#e74c3c" />
+        <MacroBar label="Glucides"  current={consumed.glucides}  target={targets.glucides}  color="#f39c12" />
+        <MacroBar label="Lipides"   current={consumed.lipides}   target={targets.lipides}   color="#3498db" />
+      </View>
+
+      {/* Rappel repas suivant */}
+      <View style={[styles.card, styles.nextMealCard]}>
+        <Text style={styles.cardTitle}>🔔 Prochain repas</Text>
+        <Text style={styles.nextMealTime}>13h00 — Déjeuner</Text>
+        <Text style={styles.nextMealTarget}>Cible : P: 52g  G: 40g  L: 12g  (~476 kcal)</Text>
+      </View>
+
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: '#f4f6f7',
+  },
+  header: {
+    backgroundColor: '#1a2e4a',
+    padding: 24,
+    paddingTop: 60,
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  headerTitle: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  dayBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  dayBadgeText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    margin: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  switchBtn: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  switchBtnActive: {
+    backgroundColor: '#1a2e4a',
+  },
+  switchBtnText: {
+    fontWeight: '600',
+    fontSize: 14,
+    color: '#7f8c8d',
+  },
+  switchBtnSub: {
+    fontSize: 11,
+    color: '#95a5a6',
+    marginTop: 2,
+  },
+  switchBtnTextActive: {
+    color: '#fff',
+  },
+  card: {
+    backgroundColor: '#fff',
+    margin: 16,
+    marginBottom: 0,
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  cardTitle: {
+    fontSize: 14,
+    color: '#7f8c8d',
+    fontWeight: '600',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  caloriesBig: {
+    fontSize: 52,
+    fontWeight: 'bold',
+    color: '#1a2e4a',
+    textAlign: 'center',
+  },
+  caloriesTarget: {
+    textAlign: 'center',
+    color: '#95a5a6',
+    marginBottom: 12,
+    fontSize: 14,
+  },
+  caloriesRemaining: {
+    textAlign: 'center',
+    color: '#27ae60',
+    fontWeight: '600',
+    marginTop: 8,
+  },
+  macroRow: {
+    marginBottom: 14,
+  },
+  macroHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  macroLabel: {
+    fontWeight: '600',
+    color: '#2c3e50',
+    fontSize: 14,
+  },
+  macroValues: {
+    color: '#7f8c8d',
+    fontSize: 13,
+  },
+  barBackground: {
+    height: 10,
+    backgroundColor: '#ecf0f1',
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: 10,
+    borderRadius: 5,
+  },
+  nextMealCard: {
+    backgroundColor: '#eaf6fb',
+    borderLeftWidth: 4,
+    borderLeftColor: '#16a085',
+    marginBottom: 32,
+  },
+  nextMealTime: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1a2e4a',
+    marginBottom: 4,
+  },
+  nextMealTarget: {
+    color: '#555',
+    fontSize: 13,
   },
 });
